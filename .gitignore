@@ -1,0 +1,4 @@
+.env
+node_modules/
+tutor-finder-backend/node_modules/
+tutor-finder-frontend/node_modules/
