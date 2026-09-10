@@ -87,7 +87,7 @@ const updateBookingStatus = async (req, res) => {
   try {
     const { status } = req.body;
     const booking = await Booking.findByIdAndUpdate(
-      req.params.id, { status }, { new: true }
+      req.params.id, { status }, { returnDocument: "after" }
     ).populate("student");
 
     if (!booking) return res.status(404).json({ message: "Booking not found" });
@@ -122,7 +122,7 @@ const cancelBooking = async (req, res) => {
     const booking = await Booking.findOneAndUpdate(
       { _id: req.params.id, student: req.user.id },
       { status: "cancelled" },
-      { new: true }
+      { returnDocument: "after" }
     ).populate({ path: "tutor", populate: { path: "user" } });
 
     if (!booking) return res.status(404).json({ message: "Booking not found" });
@@ -143,4 +143,4 @@ const cancelBooking = async (req, res) => {
   }
 };
 
-module.exports = { createBooking, getMyBookings, getTutorBookings, updateBookingStatus, cancelBooking }; 
+module.exports = { createBooking, getMyBookings, getTutorBookings, updateBookingStatus, cancelBooking };

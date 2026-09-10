@@ -16,7 +16,6 @@ const TYPE_COLORS = {
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const { notifications, unreadCount, markAllRead, clearAll, addNotifications } = useSocket();
-  const panelRef = useNavigate();
   const ref      = useRef(null);
   const navigate = useNavigate();
 

@@ -35,7 +35,7 @@ const getAllTutors = async (req, res) => {
   try {
     const { subject, location, minRate, maxRate, teachingMode } = req.query;
 
-    let filter = { isAvailable: true }; // isApproved removed — all tutors show
+    let filter = {};
 
     if (subject)      filter.subjects      = { $in: [new RegExp(subject, "i")] };
     if (location)     filter.location      = new RegExp(location, "i");
@@ -84,7 +84,7 @@ const updateTutor = async (req, res) => {
     const tutor = await Tutor.findOneAndUpdate(
       { user: req.user.id },
       req.body,
-      { new: true, runValidators: true }
+      { returnDocument: "after", runValidators: true }
     );
 
     if (!tutor) {

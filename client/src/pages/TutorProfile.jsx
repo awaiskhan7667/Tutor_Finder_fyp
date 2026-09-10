@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FaStar, FaMapMarkerAlt, FaGraduationCap, FaClock,
-         FaChalkboardTeacher, FaVideo, FaUserCheck, FaTimes } from "react-icons/fa";
-import { getTutor, createBooking } from "../services/api";
+         FaChalkboardTeacher, FaVideo, FaUserCheck, FaTimes, FaQuoteLeft } from "react-icons/fa";
+import { getTutor, createBooking, getTutorReviews } from "../services/api";
 import Avatar from "../components/Avatar";
+import StarRating from "../components/StarRating";
 
 export default function TutorProfile() {
   const { id }   = useParams();
   const navigate = useNavigate();
   const [tutor,   setTutor]   = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [booking,  setBooking]  = useState({
@@ -20,7 +22,11 @@ export default function TutorProfile() {
 
   useEffect(() => {
     getTutor(id)
-      .then((res) => setTutor(res.data.tutor))
+      .then((res) => {
+        setTutor(res.data.tutor);
+        return getTutorReviews(res.data.tutor._id);
+      })
+      .then((res) => setReviews(res.data.reviews))
       .catch(() => navigate("/tutors"))
       .finally(() => setLoading(false));
   }, [id]);
@@ -74,7 +80,43 @@ export default function TutorProfile() {
                   <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" /> Available
                 </span>
               )}
+              {/* Reviews */}
+            <div className="bg-white rounded-3xl p-7 shadow-md border border-gray-100 animate-card-in">
+              <h2 className="text-xl font-black text-gray-800 mb-6 flex items-center gap-2">
+                <span className="w-8 h-8 bg-yellow-100 rounded-xl flex items-center justify-center text-yellow-500">⭐</span>
+                Reviews ({reviews.length})
+              </h2>
+
+              {reviews.length === 0 ? (
+                <div className="text-center py-10">
+                  <span className="text-5xl block mb-3">💬</span>
+                  <p className="text-gray-400 font-medium">No reviews yet</p>
+                  <p className="text-gray-400 text-sm">Be the first to review!</p>
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  {reviews.map((r, i) => (
+                    <div key={r._id} style={{ animationDelay:`${i*100}ms` }}
+                      className="bg-gray-50 rounded-2xl p-5 animate-fade-in relative">
+                      <FaQuoteLeft className="absolute top-4 right-4 text-gray-200" size={20} />
+                      <div className="flex items-center gap-3 mb-3">
+                        <Avatar user={r.student} size="sm" />
+                        <div>
+                          <p className="font-black text-gray-800 text-sm">{r.student?.name}</p>
+                          <p className="text-gray-400 text-xs">{new Date(r.createdAt).toLocaleDateString("en-PK",{ day:"numeric", month:"short", year:"numeric" })}</p>
+                        </div>
+                        <div className="ml-auto">
+                          <StarRating value={r.rating} readonly size={14} />
+                        </div>
+                      </div>
+                      <p className="text-gray-600 text-sm leading-relaxed">{r.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+
+          </div>
             <p className="text-blue-200 text-lg mb-3">{tutor.subjects?.join(" · ")}</p>
             <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-blue-100">
               {tutor.location && <span className="flex items-center gap-1"><FaMapMarkerAlt className="text-red-400" /> {tutor.location}</span>}

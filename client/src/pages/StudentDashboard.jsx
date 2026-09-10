@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaCalendarAlt, FaClock, FaBook, FaSearch, FaVideo, FaCamera,
+import { FaCalendarAlt, FaClock, FaBook, FaSearch, FaVideo, FaCamera, FaStar,
          FaCheckCircle, FaTimesCircle, FaBan, FaSpinner, FaEdit, FaSave } from "react-icons/fa";
-import { getMyBookings, cancelBooking, uploadAvatar, updateProfile } from "../services/api";
+import { getMyBookings, cancelBooking, uploadAvatar, updateProfile, checkReviewed } from "../services/api";
 import Avatar from "../components/Avatar";
 import VideoClass from "../components/VideoClass";
+import ReviewModal from "../components/ReviewModal";
 
 const STATUS_STYLES = {
   pending:   "bg-yellow-50  text-yellow-700  border-yellow-200",
@@ -27,7 +28,9 @@ export default function StudentDashboard() {
   const [loading,     setLoading]     = useState(true);
   const [filter,      setFilter]      = useState("all");
   const [activeTab,   setActiveTab]   = useState("bookings");
-  const [activeClass, setActiveClass] = useState(null);
+  const [activeClass,   setActiveClass]   = useState(null);
+  const [reviewBooking, setReviewBooking] = useState(null);
+  const [reviewedIds,   setReviewedIds]   = useState({});
 
   // Profile state
   const [user,        setUser]        = useState(JSON.parse(localStorage.getItem("user") || "{}"));
@@ -50,6 +53,14 @@ export default function StudentDashboard() {
     try {
       const res = await getMyBookings();
       setBookings(res.data.bookings);
+      // Check which completed bookings are already reviewed
+      const completed = res.data.bookings.filter((b) => b.status === "completed");
+      const checks = await Promise.all(
+        completed.map((b) => checkReviewed(b._id).then((r) => ({ id: b._id, reviewed: r.data.reviewed })))
+      );
+      const map = {};
+      checks.forEach(({ id, reviewed }) => { map[id] = reviewed; });
+      setReviewedIds(map);
     } catch { setBookings([]); }
     setLoading(false);
   };
@@ -239,6 +250,18 @@ export default function StudentDashboard() {
                           <FaVideo /> Join Class
                         </button>
                       )}
+                      {b.status === "completed" && (
+                        reviewedIds[b._id] ? (
+                          <div className="flex-1 bg-yellow-50 text-yellow-600 font-bold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">
+                            <FaStar /> Reviewed
+                          </div>
+                        ) : (
+                          <button onClick={() => setReviewBooking(b)}
+                            className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2.5 rounded-xl transition-all duration-300 text-sm flex items-center justify-center gap-2">
+                            <FaStar /> Leave Review
+                          </button>
+                        )
+                      )}
                       {b.status === "pending" && (
                         <button onClick={() => handleCancel(b._id)}
                           className="flex-1 bg-red-50 hover:bg-red-500 text-red-500 hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 text-sm">
@@ -349,6 +372,15 @@ export default function StudentDashboard() {
           </div>
         )}
       </div>
+
+      {/* Review Modal */}
+      {reviewBooking && (
+        <ReviewModal
+          booking={reviewBooking}
+          onClose={() => setReviewBooking(null)}
+          onSubmitted={fetchBookings}
+        />
+      )}
 
       {/* Video Class */}
       {activeClass && (

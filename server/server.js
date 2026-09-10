@@ -15,7 +15,7 @@ const server = http.createServer(app);
 // ─────────────────────────────────────────
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://localhost:5174"],
     methods: ["GET", "POST"],
   },
 });
@@ -57,7 +57,9 @@ module.exports.io = io;
 // ─────────────────────────────────────────
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors({
+  origin: ["http://localhost:5173", "http://localhost:5174"],
+}));
 
 // Serve uploaded images statically
 app.use("/uploads", express.static("uploads"));
@@ -77,6 +79,7 @@ app.use("/api/users",         require("./routes/user.routes"));
 app.use("/api/tutors",        require("./routes/tutor.routes"));
 app.use("/api/bookings",      require("./routes/booking.routes"));
 app.use("/api/notifications", require("./routes/notification.routes"));
+app.use("/api/reviews",       require("./routes/review.routes"));
 
 // ─────────────────────────────────────────
 //  DEFAULT ROUTE

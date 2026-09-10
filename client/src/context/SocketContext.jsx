@@ -12,7 +12,9 @@ export function SocketProvider({ children }) {
   useEffect(() => {
     if (!user?.id) return;
 
-    const s = io("http://localhost:5000");
+    const s = io("http://localhost:5000", {
+      transports: ["websocket", "polling"],
+    });
     setSocket(s);
 
     // Register this user with the socket server

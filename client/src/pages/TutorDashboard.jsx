@@ -84,15 +84,29 @@ export default function TutorDashboard() {
   };
 
   const handleSaveProfile = async () => {
+    if (profile.subjects.length === 0) { setSaveMsg("❌ Please select at least one subject!"); return; }
+    if (!profile.bio)        { setSaveMsg("❌ Please add a bio!");         return; }
+    if (!profile.hourlyRate) { setSaveMsg("❌ Please add your hourly rate!"); return; }
     setSaving(true);
+    setSaveMsg("");
     try {
-      await updateTutor(user.id, profile);
-      setSaveMsg("✅ Profile updated!");
-    } catch {
+      // Try creating first, if exists then update
       try {
         await createTutor(profile);
         setSaveMsg("✅ Profile created!");
-      } catch { setSaveMsg("❌ Error saving profile."); }
+      } catch (createErr) {
+        // Profile already exists — update it
+        if (createErr.response?.data?.message?.includes("already exists")) {
+          await updateTutor(user.id, profile);
+          setSaveMsg("✅ Profile updated!");
+        } else {
+          throw createErr;
+        }
+      }
+      setEditProfile(false);
+    } catch (err) {
+      console.error("Save profile error:", err);
+      setSaveMsg("❌ " + (err.response?.data?.message || "Error saving profile."));
     }
     setSaving(false);
     setTimeout(() => setSaveMsg(""), 3000);

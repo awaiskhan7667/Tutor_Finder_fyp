@@ -22,6 +22,12 @@ export const getTutor      = (id)     => API.get(`/tutors/${id}`);
 export const createTutor   = (data)   => API.post("/tutors", data);
 export const updateTutor   = (id, data) => API.put(`/tutors/${id}`, data);
 
+// ── Reviews ──
+export const createReview    = (data)     => API.post("/reviews", data);
+export const getTutorReviews = (tutorId)  => API.get(`/reviews/tutor/${tutorId}`);
+export const checkReviewed   = (bookingId)=> API.get(`/reviews/check/${bookingId}`);
+export const deleteReview    = (id)       => API.delete(`/reviews/${id}`);
+
 // ── Users ──
 export const uploadAvatar   = (formData) => API.put("/users/avatar", formData, { headers: { "Content-Type": "multipart/form-data" } });
 export const getUserProfile = ()         => API.get("/users/profile");
