@@ -4,20 +4,24 @@ const router  = express.Router();
 const {
   createTutor,
   getAllTutors,
+  getMyTutorProfile,
   getTutor,
   updateTutor,
   deleteTutor,
 } = require("../controllers/tutor.controller");
 
-const { protect, authorize } = require("../middleware/auth.middleware");
+const { protect } = require("../middleware/auth.middleware");
 
 // Public routes
-router.get("/",    getAllTutors);
-router.get("/:id", getTutor);
+router.get("/", getAllTutors);
 
-// Protected routes
-router.post("/",    protect, createTutor);
-router.put("/:id",  protect, updateTutor);
-router.delete("/:id", protect, deleteTutor);
+// Protected routes (profile/me must precede :id)
+router.get("/profile/me", protect, getMyTutorProfile);
+router.post("/",          protect, createTutor);
+router.put("/:id",        protect, updateTutor);
+router.delete("/:id",     protect, deleteTutor);
+
+// Public single tutor by ID
+router.get("/:id", getTutor);
 
 module.exports = router;

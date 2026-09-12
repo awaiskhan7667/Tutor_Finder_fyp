@@ -17,6 +17,9 @@ const protect = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = await User.findById(decoded.id);
+    if (!req.user) {
+      return res.status(401).json({ message: "Not authorized, user not found" });
+    }
     next();
   } catch (err) {
     res.status(401).json({ message: "Not authorized, token failed" });

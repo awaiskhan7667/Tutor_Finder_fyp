@@ -1,5 +1,6 @@
-const Tutor = require("../models/Tutor.model");
-const User  = require("../models/User.model");
+const mongoose = require("mongoose");
+const Tutor    = require("../models/Tutor.model");
+const User     = require("../models/User.model");
 
 // ─────────────────────────────────────────
 //  CREATE TUTOR PROFILE
@@ -57,11 +58,34 @@ const getAllTutors = async (req, res) => {
 };
 
 // ─────────────────────────────────────────
+//  GET LOGGED-IN TUTOR'S OWN PROFILE
+//  GET /api/tutors/profile/me
+// ─────────────────────────────────────────
+const getMyTutorProfile = async (req, res) => {
+  try {
+    const tutor = await Tutor.findOne({ user: req.user.id })
+      .populate("user", "name email avatar phone");
+
+    if (!tutor) {
+      return res.status(404).json({ message: "Tutor profile not found" });
+    }
+
+    res.status(200).json({ success: true, tutor });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ─────────────────────────────────────────
 //  GET SINGLE TUTOR
 //  GET /api/tutors/:id
 // ─────────────────────────────────────────
 const getTutor = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ message: "Tutor not found" });
+    }
+
     const tutor = await Tutor.findById(req.params.id)
       .populate("user", "name email avatar phone");
 
@@ -84,7 +108,7 @@ const updateTutor = async (req, res) => {
     const tutor = await Tutor.findOneAndUpdate(
       { user: req.user.id },
       req.body,
-      { returnDocument: "after", runValidators: true }
+      { new: true, runValidators: true }
     );
 
     if (!tutor) {
@@ -111,4 +135,11 @@ const deleteTutor = async (req, res) => {
   }
 };
 
-module.exports = { createTutor, getAllTutors, getTutor, updateTutor, deleteTutor };
+module.exports = {
+  createTutor,
+  getAllTutors,
+  getMyTutorProfile,
+  getTutor,
+  updateTutor,
+  deleteTutor,
+};

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaCalendarAlt, FaClock, FaCheck, FaTimes, FaCamera,
          FaUserGraduate, FaMoneyBillWave, FaEdit, FaSave, FaSpinner } from "react-icons/fa";
-import { getTutorBookings, updateBookingStatus, createTutor, updateTutor, uploadAvatar, updateProfile } from "../services/api";
+import { getTutorBookings, updateBookingStatus, createTutor, updateTutor, uploadAvatar, updateProfile, getMyTutorProfile } from "../services/api";
 import Avatar from "../components/Avatar";
 
 const STATUS_STYLES = {
@@ -36,7 +36,29 @@ export default function TutorDashboard() {
   useEffect(() => {
     if (!user?.id) { navigate("/login"); return; }
     fetchBookings();
+    fetchTutorProfile();
   }, []);
+
+  const fetchTutorProfile = async () => {
+    try {
+      const res = await getMyTutorProfile();
+      if (res.data?.tutor) {
+        const t = res.data.tutor;
+        setProfile({
+          subjects: t.subjects || [],
+          bio: t.bio || "",
+          hourlyRate: t.hourlyRate || "",
+          experience: t.experience || "",
+          education: t.education || "",
+          location: t.location || "",
+          teachingMode: t.teachingMode || "both",
+          languages: t.languages || ["Urdu", "English"],
+        });
+      }
+    } catch {
+      // New tutor without profile yet
+    }
+  };
 
   const fetchBookings = async () => {
     setLoading(true);

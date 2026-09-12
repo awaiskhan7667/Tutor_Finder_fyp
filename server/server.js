@@ -2,6 +2,7 @@ const express    = require("express");
 const cors       = require("cors");
 const dotenv     = require("dotenv");
 const http       = require("http");
+const path       = require("path");
 const { Server } = require("socket.io");
 const connectDB  = require("./config/db");
 
@@ -11,18 +12,44 @@ const app    = express();
 const server = http.createServer(app);
 
 // ─────────────────────────────────────────
-//  SOCKET.IO SETUP
+//  CORS & ORIGINS CONFIGURATION
 // ─────────────────────────────────────────
+const configuredOrigins = (process.env.CLIENT_URL || "")
+  .split(",")
+  .map((u) => u.trim().replace(/\/+$/, ""))
+  .filter(Boolean);
+
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
+  "http://localhost:3000",
   "https://tutor-finder-fyp.vercel.app",
+  ...configuredOrigins,
 ];
 
+const isOriginAllowed = (origin) => {
+  if (!origin) return true; // Allow non-browser requests (Postman, mobile, server-to-server)
+  const cleanOrigin = origin.replace(/\/+$/, "");
+  if (allowedOrigins.includes(cleanOrigin)) return true;
+  // Allow all Vercel preview and production deployments
+  if (/^https:\/\/.*\.vercel\.app$/.test(cleanOrigin)) return true;
+  return false;
+};
+
+// ─────────────────────────────────────────
+//  SOCKET.IO SETUP
+// ─────────────────────────────────────────
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
-    methods: ["GET", "POST"],
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   },
 });
 
@@ -63,12 +90,21 @@ module.exports.io = io;
 // ─────────────────────────────────────────
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-  origin: allowedOrigins,
-}));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
+    credentials: true,
+  })
+);
 
-// Serve uploaded images statically
-app.use("/uploads", express.static("uploads"));
+// Serve uploaded images statically with absolute path
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ─────────────────────────────────────────
 //  TEST ROUTE

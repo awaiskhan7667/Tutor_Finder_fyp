@@ -1,7 +1,23 @@
 import axios from "axios";
 
+// Normalize baseURL so it always cleanly points to /api
+export const getBaseURL = () => {
+  const rawUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+  const cleanUrl = rawUrl.trim().replace(/\/+$/, "");
+  if (cleanUrl.endsWith("/api")) {
+    return cleanUrl;
+  }
+  return `${cleanUrl}/api`;
+};
+
+// Root server URL without /api for static assets and socket
+export const getServerBaseURL = () => {
+  const base = getBaseURL();
+  return base.replace(/\/api\/?$/, "");
+};
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: getBaseURL(),
 });
 
 // ── Attach token to every request automatically ──
@@ -17,10 +33,11 @@ export const login    = (data) => API.post("/auth/login", data);
 export const getMe    = ()     => API.get("/auth/me");
 
 // ── Tutors ──
-export const getAllTutors  = (params) => API.get("/tutors", { params });
-export const getTutor      = (id)     => API.get(`/tutors/${id}`);
-export const createTutor   = (data)   => API.post("/tutors", data);
-export const updateTutor   = (id, data) => API.put(`/tutors/${id}`, data);
+export const getAllTutors      = (params)   => API.get("/tutors", { params });
+export const getMyTutorProfile = ()         => API.get("/tutors/profile/me");
+export const getTutor          = (id)       => API.get(`/tutors/${id}`);
+export const createTutor       = (data)     => API.post("/tutors", data);
+export const updateTutor       = (id, data) => API.put(`/tutors/${id}`, data);
 
 // ── Reviews ──
 export const createReview    = (data)     => API.post("/reviews", data);
@@ -45,18 +62,16 @@ export const cancelBooking      = (id)   => API.put(`/bookings/${id}/cancel`);
 
 // ── Admin ──
 export const getAdminStats        = ()              => API.get("/admin/stats");
-
 export const getAdminUsers        = (params)         => API.get("/admin/users", { params });
 export const updateUserStatus     = (id, isActive)   => API.put(`/admin/users/${id}/status`, { isActive });
 export const updateUserRole       = (id, role)       => API.put(`/admin/users/${id}/role`, { role });
 export const deleteUser           = (id)             => API.delete(`/admin/users/${id}`);
-
 export const getAdminTutors       = (params)         => API.get("/admin/tutors", { params });
 export const setTutorApproval     = (id, isApproved) => API.put(`/admin/tutors/${id}/approval`, { isApproved });
 export const deleteTutorAdmin     = (id)             => API.delete(`/admin/tutors/${id}`);
-
 export const getAdminBookings     = (params)         => API.get("/admin/bookings", { params });
 export const forceCancelBooking   = (id)             => API.put(`/admin/bookings/${id}/cancel`);
-
 export const getAdminReviews      = ()                => API.get("/admin/reviews");
 export const deleteReviewAdmin    = (id)              => API.delete(`/admin/reviews/${id}`);
+
+export default API;

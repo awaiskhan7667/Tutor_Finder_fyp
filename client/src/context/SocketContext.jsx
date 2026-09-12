@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { io } from "socket.io-client";
+import { getServerBaseURL } from "../services/api";
 
 const SocketContext = createContext();
 
@@ -12,7 +13,8 @@ export function SocketProvider({ children }) {
   useEffect(() => {
     if (!user?.id) return;
 
-    const s = io("http://localhost:5000", {
+    const socketURL = import.meta.env.VITE_SOCKET_URL || getServerBaseURL();
+    const s = io(socketURL, {
       transports: ["websocket", "polling"],
     });
     setSocket(s);
