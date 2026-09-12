@@ -1,0 +1,58 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: tutorfinder-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - tutorfinder-net
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: tutorfinder-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - MONGO_URI=mongodb://mongodb:27017/tutorfinder
+      - JWT_SECRET=tutorfinder_local_secret_key_2026
+      - JWT_EXPIRE=7d
+      - CLIENT_URL=http://localhost:5173
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    depends_on:
+      - mongodb
+    networks:
+      - tutorfinder-net
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: tutorfinder-frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:5000/api
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - server
+    networks:
+      - tutorfinder-net
+
+volumes:
+  mongodb_data:
+
+networks:
+  tutorfinder-net:
+    driver: bridge
