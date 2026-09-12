@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
 });
 
 // ── Attach token to every request automatically ──
@@ -42,3 +42,21 @@ export const getMyBookings      = ()     => API.get("/bookings/my");
 export const getTutorBookings   = ()     => API.get("/bookings/tutor");
 export const updateBookingStatus = (id, status) => API.put(`/bookings/${id}/status`, { status });
 export const cancelBooking      = (id)   => API.put(`/bookings/${id}/cancel`);
+
+// ── Admin ──
+export const getAdminStats        = ()              => API.get("/admin/stats");
+
+export const getAdminUsers        = (params)         => API.get("/admin/users", { params });
+export const updateUserStatus     = (id, isActive)   => API.put(`/admin/users/${id}/status`, { isActive });
+export const updateUserRole       = (id, role)       => API.put(`/admin/users/${id}/role`, { role });
+export const deleteUser           = (id)             => API.delete(`/admin/users/${id}`);
+
+export const getAdminTutors       = (params)         => API.get("/admin/tutors", { params });
+export const setTutorApproval     = (id, isApproved) => API.put(`/admin/tutors/${id}/approval`, { isApproved });
+export const deleteTutorAdmin     = (id)             => API.delete(`/admin/tutors/${id}`);
+
+export const getAdminBookings     = (params)         => API.get("/admin/bookings", { params });
+export const forceCancelBooking   = (id)             => API.put(`/admin/bookings/${id}/cancel`);
+
+export const getAdminReviews      = ()                => API.get("/admin/reviews");
+export const deleteReviewAdmin    = (id)              => API.delete(`/admin/reviews/${id}`);

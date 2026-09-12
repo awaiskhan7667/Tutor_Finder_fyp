@@ -1,9 +1,9 @@
 const express    = require("express");
-const mongoose   = require("mongoose");
 const cors       = require("cors");
 const dotenv     = require("dotenv");
 const http       = require("http");
 const { Server } = require("socket.io");
+const connectDB  = require("./config/db");
 
 dotenv.config();
 
@@ -13,9 +13,15 @@ const server = http.createServer(app);
 // ─────────────────────────────────────────
 //  SOCKET.IO SETUP
 // ─────────────────────────────────────────
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://tutor-finder-fyp.vercel.app",
+];
+
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
   },
 });
@@ -58,7 +64,7 @@ module.exports.io = io;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:5174"],
+  origin: allowedOrigins,
 }));
 
 // Serve uploaded images statically
@@ -80,6 +86,7 @@ app.use("/api/tutors",        require("./routes/tutor.routes"));
 app.use("/api/bookings",      require("./routes/booking.routes"));
 app.use("/api/notifications", require("./routes/notification.routes"));
 app.use("/api/reviews",       require("./routes/review.routes"));
+app.use("/api/admin",         require("./routes/admin.routes"));
 
 // ─────────────────────────────────────────
 //  DEFAULT ROUTE
@@ -93,12 +100,8 @@ app.get("/", (req, res) => {
 // ─────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("✅ MongoDB connected");
-    server.listen(PORT, () =>
-      console.log(`🚀 Server running on port ${PORT}`)
-    );
-  })
-  .catch((err) => console.error("❌ MongoDB error:", err));
+connectDB().then(() => {
+  server.listen(PORT, () =>
+    console.log(`🚀 Server running on port ${PORT}`)
+  );
+});
