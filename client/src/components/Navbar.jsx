@@ -15,6 +15,11 @@ export default function Navbar() {
     navigate("/login");
   };
 
+  const dashboardPath =
+    user.role === "admin" ? "/dashboard/admin" :
+    user.role === "tutor" ? "/dashboard/tutor" :
+    "/dashboard/student";
+
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
@@ -34,10 +39,10 @@ export default function Navbar() {
             <>
               <NotificationBell />
               <Link
-                to={user.role === "tutor" ? "/dashboard/tutor" : "/dashboard/student"}
+                to={dashboardPath}
                 className="hover:text-blue-600 transition"
               >
-                Dashboard
+                {user.role === "admin" ? "Admin Panel" : "Dashboard"}
               </Link>
               <button
                 onClick={logout}
@@ -69,7 +74,9 @@ export default function Navbar() {
           <Link to="/tutors" onClick={() => setOpen(false)}>Find Tutors</Link>
           {token ? (
             <>
-              <Link to={user.role === "tutor" ? "/dashboard/tutor" : "/dashboard/student"} onClick={() => setOpen(false)}>Dashboard</Link>
+              <Link to={dashboardPath} onClick={() => setOpen(false)}>
+                {user.role === "admin" ? "Admin Panel" : "Dashboard"}
+              </Link>
               <button onClick={logout} className="text-red-500 text-left">Logout</button>
             </>
           ) : (
